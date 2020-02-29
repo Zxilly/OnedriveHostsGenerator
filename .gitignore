@@ -1,6 +1,3 @@
 # Created by .ignore support plugin (hsz.mobi)
-.idea/.gitignore
-.idea/OnedriveHostsGenerator.iml
-.idea/misc.xml
-.idea/modules.xml
-.idea/php.xml
+.idea/
+
