@@ -1,6 +1,12 @@
 <?php
 require("dns_get.php");
 
+foreach ($domain_list as $domain)
+{
+    echo dns_get_record($domain,DNS_A)[0]['ip']." ".$domain."\n";
+}
+
+/*
 echo <<<DNS
 {$host1[0]['ip']} onedrive.live.com
 {$host2[0]['ip']} skyapi.onedrive.live.com
@@ -13,4 +19,4 @@ echo <<<DNS
 {$host9[0]['ip']} config.edge.skype.com
 {$host10[0]['ip']} roaming.officeapps.live.com
 {$host11[0]['ip']} pagecontentsync.onenote.com
-DNS;
+DNS;*/
