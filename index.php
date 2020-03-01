@@ -19,14 +19,14 @@ echo "<br>";
 echo "api.onedrive.live.com ".$host3[0]['ip'];
 */
 echo <<<DNS
-onedrive.live.com {$host1[0]['ip']} <br>
-skyapi.onedrive.live.com {$host2[0]['ip']} <br>
-api.onedrive.live.com {$host3[0]['ip']} <br>
-d.docs.live.net {$host4[0]['ip']} <br>
-contentsync.onenote.com {$host5[0]['ip']} <br>
-hierarchyapi.onenote.com {$host6[0]['ip']} <br>
-ocws.officeapps.live.com {$host7[0]['ip']} <br>
-www.onenote.com {$host8[0]['ip']} <br>
-config.edge.skype.com {$host9[0]['ip']} <br>
-roaming.officeapps.live.com {$host10[0]['ip']} <br>
+{$host1[0]['ip']} onedrive.live.com <br>
+{$host2[0]['ip']} skyapi.onedrive.live.com <br>
+{$host3[0]['ip']} api.onedrive.live.com <br>
+{$host4[0]['ip']} d.docs.live.net <br>
+{$host5[0]['ip']} contentsync.onenote.com <br>
+{$host6[0]['ip']} hierarchyapi.onenote.com <br>
+{$host7[0]['ip']} ocws.officeapps.live.com <br>
+{$host8[0]['ip']} www.onenote.com <br>
+{$host9[0]['ip']} config.edge.skype.com <br>
+{$host10[0]['ip']} roaming.officeapps.live.com <br>
 DNS;
