@@ -1,11 +1,11 @@
 <?php
-require("dns_get.php");
+//require("dns_get.php");
 
-foreach ($domain_list as $domain)
-{
-    echo dns_get_record($domain,DNS_A)[0]['ip']." ".$domain."\n";
-}
-
+//foreach ($domain_list as $domain)
+//{
+//    echo dns_get_record($domain,DNS_A)[0]['ip']." ".$domain."\n";
+//}
+echo time();
 /*
 echo <<<DNS
 {$host1[0]['ip']} onedrive.live.com

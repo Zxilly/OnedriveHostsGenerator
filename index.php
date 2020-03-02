@@ -7,7 +7,7 @@ function get_cache_time()
 {
     $file = fopen("time.pid", "r+");
     $time_last = fread($file, filesize("time.pid"));
-    $time_now = mktime();
+    $time_now = time();
     fclose($file);
     return $time_now - $time_last;
 }
@@ -15,7 +15,7 @@ function get_cache_time()
 function refresh_time()
 {
     $file = fopen("time.pid", "w+");
-    fwrite($file, mktime());
+    fwrite($file, time());
     fclose($file);
 }
 
