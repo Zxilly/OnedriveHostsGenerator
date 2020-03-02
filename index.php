@@ -1,6 +1,51 @@
 <?php
-require("dns_get.php");
+//require "dns_get.php";
+include "dns_get.php";
 
+
+function get_cache_time()
+{
+    $file = fopen("time.pid","r+");
+    $time_last = fread($file,filesize("time.pid"));
+    $time_now = mktime();
+    fclose($file);
+    return $time_now-$time_last;
+}
+
+function refresh_dns_cache()
+{
+    global $domain_list;
+    $file = fopen("dns.cache","w+") or die("Unable to open file!");
+    fwrite($file,"####### Onenote Hosts Start #######"."\n");
+    foreach ($domain_list as $domain)
+    {
+        echo dns_get_record($domain,DNS_A)[0]['ip']." ".$domain."\n";
+        //fwrite($file,"233\n");
+        //fwrite($file,dns_get_record($domain,DNS_A)[0]['ip']." ".$domain."\n");
+    }
+    fwrite($file,"####### Onenote Hosts End #######"."\n");
+    fclose($file);
+}
+
+function read_dns_cache()
+{
+    $file = fopen("dns.cache","w+");
+    echo readfile("dns.cache");
+    fclose($file);
+}
+
+if(get_cache_time()>3600)
+{
+    refresh_dns_cache();
+    read_dns_cache();
+}
+
+
+
+
+
+
+/*
 echo "####### Onenote Hosts Start #######"."<br>";
 
 foreach ($domain_list as $domain)
@@ -9,7 +54,7 @@ foreach ($domain_list as $domain)
 }
 
 echo "####### Onenote Hosts End #######"."<br>";
-
+*/
 //print_r($host1);
 /*
 echo "onedrive.live.com ".$host1[0]['ip'];
