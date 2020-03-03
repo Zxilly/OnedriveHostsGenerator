@@ -15,6 +15,7 @@ $host11 = dns_get_record("pagecontentsync.onenote.com",DNS_A);
 $domain_list = array(
     "contentstorage.osi.office.net",
     "onedrive.live.com",
+    "login.live.com",
     "skyapi.onedrive.live.com",
     "d.docs.live.net",
     "contentsync.onenote.com",
@@ -29,6 +30,7 @@ $domain_list = array(
     "docs.live.net",
     "storage.live.com",
     "skydrive.wns.windows.com",
+    "client.wns.windows.com",
     "mobile.pipe.aria.microsoft.com",
     "oneclient.sfx.ms",
     "skydrivesync.policies.live.net",
