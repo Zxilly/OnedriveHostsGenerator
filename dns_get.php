@@ -37,4 +37,7 @@ $domain_list = array(
     "api.onedrive.com",
     "public.bn.files.1drv.com",
     "public.dm.files.1drv.com",
+    "cdn.onenote.net",
+    "ad.atdmt.com",
+    "officeimg.vo.msecnd.net",
 );
