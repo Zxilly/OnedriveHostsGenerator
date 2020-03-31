@@ -40,4 +40,5 @@ $domain_list = array(
     "cdn.onenote.net",
     "ad.atdmt.com",
     "officeimg.vo.msecnd.net",
+    "onenote.officeapps.live.com",
 );
