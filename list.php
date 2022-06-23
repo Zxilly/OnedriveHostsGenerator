@@ -28,4 +28,8 @@ $domain_list = array(
     "ad.atdmt.com",
     "officeimg.vo.msecnd.net",
     "onenote.officeapps.live.com",
+    "outlook.office365.com",
+    "substrate.office.com",
+    "todo.microsoft.com",
+    "to-do.live.com"
 );

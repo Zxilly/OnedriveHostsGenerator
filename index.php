@@ -1,5 +1,5 @@
 <?php
-require "dns_get.php";
+require "list.php";
 
 function get_cache_time()
 {
