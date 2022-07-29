@@ -31,5 +31,8 @@ $domain_list = array(
     "outlook.office365.com",
     "substrate.office.com",
     "todo.microsoft.com",
-    "to-do.live.com"
+    "to-do.live.com",
+    "account.live.com",
+    "outlook.live.com",
+    "profile.live.com",
 );

@@ -20,6 +20,8 @@ function refresh_time()
 function refresh_dns_cache()
 {
     global $domain_list;
+    sort($domain_list);
+
     $file = fopen("dns.cache", "w+") or die("Unable to open file!");
     fwrite($file, "####### Onenote Hosts Start #######" . "\n");
     foreach ($domain_list as $domain) {
