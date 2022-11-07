@@ -17,10 +17,32 @@ function refresh_time()
     fclose($file);
 }
 
+function sort_domain($domain_list): array
+{
+    // Sort domain list by domain root name,then by domain name
+    $domain_list = array_unique($domain_list);
+    $domain_list = array_values($domain_list);
+    $domain_list = array_map(function($domain){
+        $domain = explode(".", $domain);
+        $domain = array_reverse($domain);
+        return $domain;
+    }, $domain_list);
+    usort($domain_list, function($a, $b){
+        $a = implode(".", $a);
+        $b = implode(".", $b);
+        return strcmp($a, $b);
+    });
+    $domain_list = array_map(function($domain){
+        $domain = array_reverse($domain);
+        return implode(".", $domain);
+    }, $domain_list);
+    return $domain_list;
+}
+
 function refresh_dns_cache()
 {
     global $domain_list;
-    sort($domain_list);
+    $domain_list = sort_domain($domain_list);
 
     $file = fopen("dns.cache", "w+") or die("Unable to open file!");
     fwrite($file, "####### Onenote Hosts Start #######" . "\n");
