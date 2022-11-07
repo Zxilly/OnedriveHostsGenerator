@@ -3,8 +3,15 @@ require "list.php";
 
 function get_cache_time()
 {
-    $file = fopen("time.pid", "r+");
-    $time_last = fread($file, filesize("time.pid"));
+    // try open, if not exist, create
+    $file = fopen("time.pid", "a+");
+    if (filesize("time.pid") == 0) {
+        fwrite($file, 0);
+        $time_last = 0;
+    } else {
+        $time_last = fread($file, filesize("time.pid"));
+    }
+
     $time_now = time();
     fclose($file);
     return $time_now - $time_last;
@@ -22,17 +29,17 @@ function sort_domain($domain_list): array
     // Sort domain list by domain root name,then by domain name
     $domain_list = array_unique($domain_list);
     $domain_list = array_values($domain_list);
-    $domain_list = array_map(function($domain){
+    $domain_list = array_map(function ($domain) {
         $domain = explode(".", $domain);
         $domain = array_reverse($domain);
         return $domain;
     }, $domain_list);
-    usort($domain_list, function($a, $b){
+    usort($domain_list, function ($a, $b) {
         $a = implode(".", $a);
         $b = implode(".", $b);
         return strcmp($a, $b);
     });
-    $domain_list = array_map(function($domain){
+    $domain_list = array_map(function ($domain) {
         $domain = array_reverse($domain);
         return implode(".", $domain);
     }, $domain_list);
