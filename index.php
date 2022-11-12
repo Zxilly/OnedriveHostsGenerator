@@ -54,9 +54,9 @@ function refresh_dns_cache()
     $file = fopen("dns.cache", "w+") or die("Unable to open file!");
     fwrite($file, "####### Onenote Hosts Start #######" . "\n");
     foreach ($domain_list as $domain) {
-        //echo dns_get_record($domain,DNS_A)[0]['ip']." ".$domain."\n";
-        //fwrite($file,"233\n");
-        fwrite($file, dns_get_record($domain, DNS_A)[0]['ip'] . " " . $domain . "\n");
+        $ip = dns_get_record($domain, DNS_A)[0]['ip'];
+        $ip = str_pad($ip, 15);
+        fwrite($file,  $ip. " " . $domain . "\n");
     }
     fwrite($file, "####### Onenote Hosts End #######" . "\n");
     fclose($file);
