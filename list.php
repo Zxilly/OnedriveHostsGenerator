@@ -1,5 +1,26 @@
 <?php
-$domain_list = array(
+
+function sort_domain($domain_list): array
+{
+    // Sort domain list by domain root name,then by domain name
+    $domain_list = array_unique($domain_list);
+    $domain_list = array_values($domain_list);
+    $domain_list = array_map(function ($domain) {
+        $domain = explode(".", $domain);
+        return array_reverse($domain);
+    }, $domain_list);
+    usort($domain_list, function ($a, $b) {
+        $a = implode(".", $a);
+        $b = implode(".", $b);
+        return strcmp($a, $b);
+    });
+    return array_map(function ($domain) {
+        $domain = array_reverse($domain);
+        return implode(".", $domain);
+    }, $domain_list);
+}
+
+$domain_list = sort_domain(array(
     "contentstorage.osi.office.net",
     "onedrive.live.com",
     "login.live.com",
@@ -35,4 +56,4 @@ $domain_list = array(
     "account.live.com",
     "outlook.live.com",
     "profile.live.com",
-);
+));
