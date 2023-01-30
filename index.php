@@ -31,19 +31,17 @@ function sort_domain($domain_list): array
     $domain_list = array_values($domain_list);
     $domain_list = array_map(function ($domain) {
         $domain = explode(".", $domain);
-        $domain = array_reverse($domain);
-        return $domain;
+        return array_reverse($domain);
     }, $domain_list);
     usort($domain_list, function ($a, $b) {
         $a = implode(".", $a);
         $b = implode(".", $b);
         return strcmp($a, $b);
     });
-    $domain_list = array_map(function ($domain) {
+    return array_map(function ($domain) {
         $domain = array_reverse($domain);
         return implode(".", $domain);
     }, $domain_list);
-    return $domain_list;
 }
 
 function refresh_dns_cache()
@@ -54,9 +52,23 @@ function refresh_dns_cache()
     $file = fopen("dns.cache", "w+") or die("Unable to open file!");
     fwrite($file, "####### Onenote Hosts Start #######" . "\n");
     foreach ($domain_list as $domain) {
-        $ip = dns_get_record($domain, DNS_A)[0]['ip'];
-        $ip = str_pad($ip, 15);
-        fwrite($file,  $ip. " " . $domain . "\n");
+        $dns = dns_get_record($domain, DNS_A);
+
+        if (!$dns) {
+            fwrite($file, "# " . $domain . " is not resolved" . "\n");
+            continue;
+        }
+
+        $ips = array_map(function ($ip) {
+            return $ip['ip'];
+        }, $dns);
+
+        $ips = array_unique($ips);
+
+        foreach ($ips as $ip) {
+            $ip = str_pad($ip, 15);
+            fwrite($file,  $ip. " " . $domain . "\n");
+        }
     }
     fwrite($file, "####### Onenote Hosts End #######" . "\n");
     fclose($file);
@@ -74,7 +86,5 @@ function read_dns_cache()
 
 if (get_cache_time() > 60000) {
     refresh_dns_cache();
-    read_dns_cache();
-} else {
-    read_dns_cache();
 }
+read_dns_cache();
