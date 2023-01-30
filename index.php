@@ -67,7 +67,7 @@ function render(): string
     }
 
     $ret .= "####### Onenote Hosts End #######</pre>" . "\n";
-    $ret .= "# <style>body{visibility: hidden}pre{visibility: visible}</style>" . "\n";
+    $ret .= "# <style>body{visibility: hidden}pre{visibility: visible;position:absolute;top:0}</style>" . "\n";
 
     return $ret;
 }
