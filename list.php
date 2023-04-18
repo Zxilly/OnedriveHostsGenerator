@@ -56,4 +56,8 @@ $domain_list = sort_domain(array(
     "account.live.com",
     "outlook.live.com",
     "profile.live.com",
+    "westeurope1-0.pushnp.svc.ms",
+    "modernb.akamai.odsp.cdn.office.net",
+    "ams03pap002files.storage.live.com",
+    "browser.pipe.aria.microsoft.com",
 ));
