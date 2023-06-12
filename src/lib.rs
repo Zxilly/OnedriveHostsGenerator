@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use std::net::{Ipv4Addr, Ipv6Addr, ToSocketAddrs};
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, ToSocketAddrs};
 use chrono::Local;
 use once_cell::sync::Lazy;
 
@@ -72,16 +72,34 @@ pub fn render() -> String {
     }
 
     ret.push_str("\n# IPv4 addresses:\n");
+
+    fn find_max_length<T: std::fmt::Display>(ips: &HashSet<(String, T)>) -> usize {
+        let mut max_ip_len = 0;
+        ips.iter().for_each(|(_, ip)| {
+            let len = ip.to_string().len();
+            if len > max_ip_len {
+                max_ip_len = len;
+            }
+        });
+        max_ip_len
+    }
+
+    // find max length of v4 ip
+    let max_v4_ip_len = find_max_length(&v4_ips);
+
     for (domain, ip) in v4_ips.into_iter() {
-        ret.push_str(&format!("{} {}\n", ip, domain));
+        ret.push_str(&format!("{:width$} {}\n", ip, domain, width = max_v4_ip_len));
     }
 
     if !v6_ips.is_empty() {
         ret.push_str("\n# IPv6 addresses:\n");
     }
 
+    // find max length of v6 ip
+    find_max_length(&v6_ips);
+
     for (domain, ip) in v6_ips.into_iter() {
-        ret.push_str(&format!("{} {}\n", ip, domain));
+        ret.push_str(&format!("{:width$} {}\n", ip, domain, width = max_v4_ip_len));
     }
 
     ret.push_str("####### Onenote Hosts End #######\n");
