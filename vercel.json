@@ -7,7 +7,7 @@
   "routes": [
     {
       "src": "/*",
-      "dest": "/api/handler.rs"
+      "dest": "api/handler.rs"
     }
   ]
 }
