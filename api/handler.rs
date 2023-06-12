@@ -11,5 +11,6 @@ pub async fn handler(_req: Request) -> Result<Response<Body>, Error> {
     Ok(Response::builder()
         .status(StatusCode::OK)
         .header("Content-Type", "text/plain")
+        .header("Cache-Control", "s-maxage=6000, stale-while-revalidate=10")
         .body(Body::Text(ret))?)
 }
