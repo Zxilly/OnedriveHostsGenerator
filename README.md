@@ -7,7 +7,7 @@ A Page include Onenote for Windows 10's hosts
 
 `https://onedrive-hosts.learningman.top`
 
-请求时包含 `?fresh` 参数可获取最新的 hosts 列表。
+缓存每 6000 秒更新一次。
 
 ## 开发
 

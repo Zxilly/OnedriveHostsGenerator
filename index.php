@@ -1,42 +1,6 @@
 <?php
 require "list.php";
 
-function get_cache_time()
-{
-    // try open, if not exist, create
-    $file = fopen("time.pid", "a+");
-    if (filesize("time.pid") == 0) {
-        fwrite($file, 0);
-        $time_last = 0;
-    } else {
-        $time_last = fread($file, filesize("time.pid"));
-    }
-
-    $time_now = time();
-    fclose($file);
-    return $time_now - $time_last;
-}
-
-function update_time()
-{
-    $file = fopen("time.pid", "w+");
-    fwrite($file, time());
-    fclose($file);
-}
-
-function update_content($content)
-{
-    $file = fopen("dns.cache", "w+");
-    fwrite($file, $content);
-    fclose($file);
-}
-
-function update_cache($content)
-{
-    update_content($content);
-    update_time();
-}
-
 function render(): string
 {
     global $domain_list;
@@ -69,32 +33,12 @@ function render(): string
 
     return $ret;
 }
-
-function read_dns_cache(): string
-{
-    $file = fopen("dns.cache", "r+");
-    $content = fread($file, filesize("dns.cache"));
-    fclose($file);
-    return $content;
-}
-
-function handle()
+function handler(): void
 {
     header("Content-Type: text/plain");
+    header("Cache-Control: s-maxage=5000, stale-while-revalidate=1000");
 
-    $is_cache_invalid = get_cache_time() > 60000;
-    $is_fresh = isset($_GET['fresh']);
-
-    if ($is_fresh or $is_cache_invalid) {
-        $content = render();
-
-        if ($is_cache_invalid) {
-            update_cache($content);
-        }
-    } else {
-        $content = read_dns_cache();
-    }
-    echo $content;
+    echo render();
 }
 
-handle();
+handler();
