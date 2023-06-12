@@ -1,7 +1,3 @@
 target/
 
 README.md
-
-Cargo.toml
-Cargo.lock
-domains.txt
