@@ -96,10 +96,10 @@ pub fn render() -> String {
     }
 
     // find max length of v6 ip
-    find_max_length(&v6_ips);
+    let max_v6_ip_len = find_max_length(&v6_ips);
 
     for (domain, ip) in v6_ips.into_iter() {
-        ret.push_str(&format!("{:width$} {}\n", ip, domain, width = max_v4_ip_len));
+        ret.push_str(&format!("{:width$} {}\n", ip, domain, width = max_v6_ip_len));
     }
 
     ret.push_str("####### Onenote Hosts End #######\n");
