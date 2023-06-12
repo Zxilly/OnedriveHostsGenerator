@@ -37,7 +37,7 @@ pub fn render() -> String {
 
     let now = Local::now();
 
-    ret.push_str(&format!("# Generate time: {:?}\n", now.format("%Y-%m-%d %H:%M:%S")));
+    ret.push_str(&format!("# Generate time: {}\n", now.format("%Y-%m-%d %H:%M:%S")));
 
     let mut v4_ips: HashSet<(String, Ipv4Addr)> = HashSet::new();
     let mut v6_ips: HashSet<(String, Ipv6Addr)> = HashSet::new();
