@@ -39,9 +39,9 @@ pub fn render() -> String {
 
     ret.push_str(&format!("# Generate time: {}\n", now.format("%Y-%m-%d %H:%M:%S")));
 
-    let mut v4_ips: HashSet<(String, Ipv4Addr)> = HashSet::new();
-    let mut v6_ips: HashSet<(String, Ipv6Addr)> = HashSet::new();
-    let mut unresolved_domains: HashSet<String> = HashSet::new();
+    let mut v4_ips: Vec<(String, Ipv4Addr)> = vec![];
+    let mut v6_ips: Vec<(String, Ipv6Addr)> = vec![];
+    let mut unresolved_domains: Vec<String> = vec![];
 
     for domain in DOMAIN_LIST.clone().into_iter() {
         let addr = (domain.as_ref(), 0).to_socket_addrs();
@@ -50,16 +50,16 @@ pub fn render() -> String {
                 for socket_addr in addrs.by_ref() {
                     match socket_addr {
                         std::net::SocketAddr::V4(v4_addr) => {
-                            v4_ips.insert((domain.clone(), *v4_addr.ip()));
+                            v4_ips.push((domain.clone(), *v4_addr.ip()));
                         }
                         std::net::SocketAddr::V6(v6_addr) => {
-                            v6_ips.insert((domain.clone(), *v6_addr.ip()));
+                            v6_ips.push((domain.clone(), *v6_addr.ip()));
                         }
                     }
                 }
             }
             Err(_) => {
-                unresolved_domains.insert(domain);
+                unresolved_domains.push(domain);
             }
         }
     }
@@ -73,7 +73,7 @@ pub fn render() -> String {
 
     ret.push_str("\n# IPv4 addresses:\n");
 
-    fn find_max_length<T: std::fmt::Display>(ips: &HashSet<(String, T)>) -> usize {
+    fn find_max_length<T: std::fmt::Display>(ips: &[(String, T)]) -> usize {
         let mut max_ip_len = 0;
         ips.iter().for_each(|(_, ip)| {
             let len = ip.to_string().len();
