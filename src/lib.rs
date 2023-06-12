@@ -73,22 +73,27 @@ pub fn render() -> String {
 
     ret.push_str("\n# IPv4 addresses:\n");
 
-    fn find_max_length<T: std::fmt::Display>(ips: &[(String, T)]) -> usize {
+    fn find_max_length<T: std::fmt::Display>(ips: &[(String, T)]) -> (usize, usize) {
         let mut max_ip_len = 0;
-        ips.iter().for_each(|(_, ip)| {
+        let mut max_domain_len = 0;
+        ips.iter().for_each(|(domain, ip)| {
             let len = ip.to_string().len();
             if len > max_ip_len {
                 max_ip_len = len;
             }
+            let len = domain.len();
+            if len > max_domain_len {
+                max_domain_len = len;
+            }
         });
-        max_ip_len
+        (max_ip_len, max_domain_len)
     }
 
     // find max length of v4 ip
-    let max_v4_ip_len = find_max_length(&v4_ips);
+    let (max_v4_ip_len, max_v4_domain_len) = find_max_length(&v4_ips);
 
     for (domain, ip) in v4_ips.into_iter() {
-        ret.push_str(&format!("{:width$} {}\n", ip, domain, width = max_v4_ip_len));
+        ret.push_str(&format!("{:w1$} {:>w2$}\n", ip, domain, w1 = max_v4_ip_len, w2 = max_v4_domain_len));
     }
 
     if !v6_ips.is_empty() {
@@ -96,10 +101,10 @@ pub fn render() -> String {
     }
 
     // find max length of v6 ip
-    let max_v6_ip_len = find_max_length(&v6_ips);
+    let (max_v6_ip_len, max_v6_domain_len) = find_max_length(&v6_ips);
 
     for (domain, ip) in v6_ips.into_iter() {
-        ret.push_str(&format!("{:width$} {}\n", ip, domain, width = max_v6_ip_len));
+        ret.push_str(&format!("{:w1$} {:>w2$}\n", ip, domain, w1 = max_v6_ip_len, w2 = max_v6_domain_len));
     }
 
     ret.push_str("####### Onenote Hosts End #######\n");
