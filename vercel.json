@@ -1,21 +1,14 @@
 {
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "api/handler.rs"
+  "outputDirectory": "public",
+  "functions": {
+    "api/**/*.rs": {
+      "runtime": "vercel-rust@4.0.2"
     }
-  ],
-  "builds": [
+  },
+  "rewrites": [
     {
-      "src": "api/handler.rs",
-      "use": "vercel-rust",
-      "config": {
-        "functions": {
-          "api/handler.rs": {
-            "runtime": "vercel-rust@4.0.2"
-          }
-        }
-      }
+      "source": "/(.*)",
+      "destination": "/api/handler"
     }
   ]
 }
