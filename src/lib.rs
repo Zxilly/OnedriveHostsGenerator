@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, ToSocketAddrs};
+use std::net::{Ipv4Addr, Ipv6Addr, ToSocketAddrs};
 use chrono::Local;
 use once_cell::sync::Lazy;
 

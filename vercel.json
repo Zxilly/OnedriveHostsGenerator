@@ -6,7 +6,7 @@
   },
   "routes": [
     {
-      "src": "/*",
+      "src": "/(.*)",
       "dest": "api/handler.rs"
     }
   ]

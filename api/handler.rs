@@ -1,5 +1,7 @@
-use vercel_runtime::{run, Body, Error, Request, Response, StatusCode, RequestExt};
+use std::collections::HashMap;
+use vercel_runtime::{run, Body, Error, Request, Response, StatusCode};
 use onedrive_hosts_generator::render;
+use url::Url;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -7,9 +9,11 @@ async fn main() -> Result<(), Error> {
 }
 
 pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
-    let query = req.query_string_parameters();
-    let ipv4 = query.all("ipv4").is_some();
-    let ipv6 = query.all("ipv6").is_some();
+    let query = Url::parse(&req.uri().to_string()).unwrap();
+    let hash_query: HashMap<String, String> = query.query_pairs().into_owned().collect();
+
+    let ipv4 = hash_query.get("ipv4").is_some();
+    let ipv6 = hash_query.get("ipv6").is_some();
 
     let ret = if !ipv4 && !ipv6 {
         render(true, true)

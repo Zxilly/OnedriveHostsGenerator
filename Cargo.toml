@@ -7,10 +7,11 @@ edition = "2021"
 chrono = "0.4.26"
 once_cell = "1.18.0"
 tokio = { version = "1", features = ["macros"] }
+url = "2.4.0"
 vercel_runtime = "1.0.2"
 
 [[bin]]
-name = "main"
+name = "handler"
 path = "api/handler.rs"
 
 [lib]
