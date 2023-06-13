@@ -9,6 +9,8 @@ A Page include Onenote for Windows 10's hosts
 
 缓存每 6000 秒更新一次。
 
+你可以附加 `ipv4` 或者 `ipv6` 作为查询参数来获取不同的结果。默认为全部输出。
+
 ## 开发
 
 你可以在 [Office 365 端点](https://docs.microsoft.com/zh-cn/office365/enterprise/office-365-endpoints) 找到所有 `Microsoft 365 应用` 所使用的域名，但因为该文档中含有大量通配符域名，实践中需要配合本地客户端抓包
