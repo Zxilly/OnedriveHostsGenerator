@@ -55,7 +55,7 @@ pub async fn render(ipv4: bool, ipv6: bool) -> String {
     let mut v6_ips: Vec<(String, Ipv6Addr)> = vec![];
     let mut unresolved_domains: Vec<String> = vec![];
 
-    let resolver = AsyncResolver::tokio(ResolverConfig::cloudflare_tls(), ResolverOpts::default()).unwrap();
+    let resolver = AsyncResolver::tokio(ResolverConfig::google(), ResolverOpts::default()).unwrap();
 
     for domain in DOMAIN_LIST.clone().into_iter() {
         let addrs = resolver.lookup_ip(domain.clone()).await;
