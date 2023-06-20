@@ -23,7 +23,6 @@ api.onedrive.com
 public.bn.files.1drv.com
 public.dm.files.1drv.com
 cdn.onenote.net
-ad.atdmt.com
 officeimg.vo.msecnd.net
 onenote.officeapps.live.com
 outlook.office365.com
