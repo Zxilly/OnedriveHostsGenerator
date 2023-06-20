@@ -7,11 +7,6 @@ use std::net::{Ipv4Addr, Ipv6Addr};
 use trust_dns_resolver::config::*;
 use trust_dns_resolver::Resolver;
 
-static RESOLVER: Lazy<Resolver> = Lazy::new(|| {
-    let r = Resolver::new(ResolverConfig::cloudflare_tls(), ResolverOpts::default()).unwrap();
-    r
-});
-
 use crate::utils::StringLine;
 
 fn sort_domain(domain_list: Vec<&str>) -> Vec<String> {
@@ -60,8 +55,10 @@ pub fn render(ipv4: bool, ipv6: bool) -> String {
     let mut v6_ips: Vec<(String, Ipv6Addr)> = vec![];
     let mut unresolved_domains: Vec<String> = vec![];
 
+    let resolver = Resolver::new(ResolverConfig::cloudflare_tls(), ResolverOpts::default()).unwrap();
+
     for domain in DOMAIN_LIST.clone().into_iter() {
-        let addrs = RESOLVER.lookup_ip(domain.clone());
+        let addrs = resolver.lookup_ip(domain.clone());
         if addrs.is_err() {
             eprintln!("resolve domain err: {:?}", addrs.err());
             unresolved_domains.push(domain);
