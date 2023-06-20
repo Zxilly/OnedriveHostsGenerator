@@ -19,7 +19,7 @@ pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
         render(true, true)
     } else {
         render(ipv4, ipv6)
-    };
+    }.await;
 
     Ok(Response::builder()
         .status(StatusCode::OK)

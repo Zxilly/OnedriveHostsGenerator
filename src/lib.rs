@@ -5,7 +5,7 @@ use once_cell::sync::Lazy;
 use std::collections::HashSet;
 use std::net::{Ipv4Addr, Ipv6Addr};
 use trust_dns_resolver::config::*;
-use trust_dns_resolver::Resolver;
+use trust_dns_resolver::AsyncResolver;
 
 use crate::utils::StringLine;
 
@@ -37,7 +37,7 @@ static DOMAIN_LIST: Lazy<Vec<String>> = Lazy::new(|| {
     sort_domain(domain_list)
 });
 
-pub fn render(ipv4: bool, ipv6: bool) -> String {
+pub async fn render(ipv4: bool, ipv6: bool) -> String {
     let mut ret = String::new();
     ret.push_str_line("####### Onenote Hosts Start #######");
     ret.push_str_line(
@@ -55,10 +55,10 @@ pub fn render(ipv4: bool, ipv6: bool) -> String {
     let mut v6_ips: Vec<(String, Ipv6Addr)> = vec![];
     let mut unresolved_domains: Vec<String> = vec![];
 
-    let resolver = Resolver::new(ResolverConfig::cloudflare_tls(), ResolverOpts::default()).unwrap();
+    let resolver = AsyncResolver::tokio(ResolverConfig::cloudflare_tls(), ResolverOpts::default()).unwrap();
 
     for domain in DOMAIN_LIST.clone().into_iter() {
-        let addrs = resolver.lookup_ip(domain.clone());
+        let addrs = resolver.lookup_ip(domain.clone()).await;
         if addrs.is_err() {
             eprintln!("resolve domain err: {:?}", addrs.err());
             unresolved_domains.push(domain);
