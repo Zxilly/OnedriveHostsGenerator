@@ -28,8 +28,8 @@ pub async fn render(ipv4: bool, ipv6: bool) -> String {
 
     let resolver = AsyncResolver::tokio(ResolverConfig::google(), ResolverOpts::default()).unwrap();
 
-    for domain in DOMAIN_LIST.clone().into_iter() {
-        let addrs = resolver.lookup_ip(domain.clone()).await;
+    for domain in DOMAIN_LIST.into_iter() {
+        let addrs = resolver.lookup_ip(domain).await;
         if addrs.is_err() {
             eprintln!("resolve domain err: {:?}", addrs.err());
             unresolved_domains.push(domain);
@@ -40,10 +40,10 @@ pub async fn render(ipv4: bool, ipv6: bool) -> String {
         for addr in addrs.iter() {
             match addr {
                 std::net::IpAddr::V4(v4_addr) => {
-                    v4_ips.push((domain.clone(), v4_addr));
+                    v4_ips.push((domain, v4_addr));
                 }
                 std::net::IpAddr::V6(v6_addr) => {
-                    v6_ips.push((domain.clone(), v6_addr));
+                    v6_ips.push((domain, v6_addr));
                 }
             }
         }
