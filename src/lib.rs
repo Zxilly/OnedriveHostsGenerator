@@ -6,7 +6,7 @@ use trust_dns_resolver::AsyncResolver;
 
 use crate::utils::StringLine;
 
-include!(concat!(env!("OUT_DIR"), "./domains.rs"));
+include!(concat!(env!("OUT_DIR"), "/domains.rs"));
 
 pub async fn render(ipv4: bool, ipv6: bool) -> String {
     let mut ret = String::new();
