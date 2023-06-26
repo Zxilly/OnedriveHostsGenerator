@@ -11,6 +11,7 @@ tokio = { version = "1", features = ["macros"] }
 url = "2.4.0"
 vercel_runtime = "1.0.2"
 trust-dns-resolver = { version = "*", features = ["dns-over-https-rustls", "tokio-runtime"] }
+chrono-tz = "0.8.2"
 
 [[bin]]
 name = "handler"
