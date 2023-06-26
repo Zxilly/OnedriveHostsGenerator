@@ -1,41 +1,12 @@
 mod utils;
-
 use chrono::Local;
-use once_cell::sync::Lazy;
-use std::collections::HashSet;
 use std::net::{Ipv4Addr, Ipv6Addr};
 use trust_dns_resolver::config::*;
 use trust_dns_resolver::AsyncResolver;
 
 use crate::utils::StringLine;
 
-fn sort_domain(domain_list: Vec<&str>) -> Vec<String> {
-    // Sort domain list by domain root name, then by domain name
-    let domain_list: HashSet<&str> = domain_list.into_iter().collect();
-    let mut domain_list: Vec<String> = domain_list.into_iter().map(String::from).collect();
-
-    domain_list.sort_by(|a, b| {
-        let a_parts: Vec<&str> = a.split('.').rev().collect();
-        let a = a_parts.join(".");
-
-        let b_parts: Vec<&str> = b.split('.').rev().collect();
-        let b = b_parts.join(".");
-
-        a.cmp(&b)
-    });
-
-    domain_list
-}
-
-static DOMAIN_LIST: Lazy<Vec<String>> = Lazy::new(|| {
-    let domain_list = include_str!("../domains.txt");
-    let domain_list: Vec<&str> = domain_list
-        .split('\n')
-        .map(|s| s.trim())
-        .filter(|s| !s.is_empty())
-        .collect();
-    sort_domain(domain_list)
-});
+include!(concat!(env!("OUT_DIR"), "./domains.rs"));
 
 pub async fn render(ipv4: bool, ipv6: bool) -> String {
     let mut ret = String::new();
@@ -51,9 +22,9 @@ pub async fn render(ipv4: bool, ipv6: bool) -> String {
         now.format("%Y-%m-%d %H:%M:%S")
     ));
 
-    let mut v4_ips: Vec<(String, Ipv4Addr)> = vec![];
-    let mut v6_ips: Vec<(String, Ipv6Addr)> = vec![];
-    let mut unresolved_domains: Vec<String> = vec![];
+    let mut v4_ips: Vec<(&str, Ipv4Addr)> = vec![];
+    let mut v6_ips: Vec<(&str, Ipv6Addr)> = vec![];
+    let mut unresolved_domains: Vec<&str> = vec![];
 
     let resolver = AsyncResolver::tokio(ResolverConfig::google(), ResolverOpts::default()).unwrap();
 
@@ -85,7 +56,7 @@ pub async fn render(ipv4: bool, ipv6: bool) -> String {
         }
     }
 
-    fn find_max_length<T: std::fmt::Display>(ips: &[(String, T)]) -> (usize, usize) {
+    fn find_max_length<T: std::fmt::Display>(ips: &[(&str, T)]) -> (usize, usize) {
         let mut max_ip_len = 0;
         let mut max_domain_len = 0;
         ips.iter().for_each(|(domain, ip)| {
