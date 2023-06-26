@@ -1,12 +1,27 @@
 mod utils;
-use chrono::Local;
-use std::net::{Ipv4Addr, Ipv6Addr};
-use trust_dns_resolver::config::*;
-use trust_dns_resolver::AsyncResolver;
 
+use chrono::Local;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use once_cell::sync::Lazy;
+use trust_dns_resolver::config::*;
+use trust_dns_resolver::{AsyncResolver, TokioAsyncResolver};
+use trust_dns_resolver::error::ResolveError;
+use trust_dns_resolver::lookup_ip::LookupIp;
 use crate::utils::StringLine;
 
 include!(concat!(env!("OUT_DIR"), "/domains.rs"));
+
+static RESOLVER: Lazy<TokioAsyncResolver> = Lazy::new(|| {
+    let mut options = ResolverOpts::default();
+    options.ip_strategy = LookupIpStrategy::Ipv4AndIpv6;
+
+    AsyncResolver::tokio(ResolverConfig::quad9_https(), options).unwrap()
+});
+
+#[inline]
+async fn try_resolve(domain: &str) -> Result<LookupIp, ResolveError> {
+    RESOLVER.lookup_ip(domain).await
+}
 
 pub async fn render(ipv4: bool, ipv6: bool) -> String {
     let mut ret = String::new();
@@ -26,26 +41,21 @@ pub async fn render(ipv4: bool, ipv6: bool) -> String {
     let mut v6_ips: Vec<(&str, Ipv6Addr)> = vec![];
     let mut unresolved_domains: Vec<&str> = vec![];
 
-    let resolver = AsyncResolver::tokio(ResolverConfig::google(), ResolverOpts::default()).unwrap();
-
     for domain in DOMAIN_LIST.into_iter() {
-        let addrs = resolver.lookup_ip(domain).await;
-        if addrs.is_err() {
-            eprintln!("resolve domain err: {:?}", addrs.err());
-            unresolved_domains.push(domain);
-            continue;
-        }
-        let addrs = addrs.unwrap();
-
-        for addr in addrs.iter() {
-            match addr {
-                std::net::IpAddr::V4(v4_addr) => {
-                    v4_ips.push((domain, v4_addr));
-                }
-                std::net::IpAddr::V6(v6_addr) => {
-                    v6_ips.push((domain, v6_addr));
+        let ret = try_resolve(domain).await;
+        if let Ok(addrs) = ret {
+            for addr in addrs.iter() {
+                match addr {
+                    IpAddr::V4(ip) => {
+                        v4_ips.push((domain, ip));
+                    }
+                    IpAddr::V6(ip) => {
+                        v6_ips.push((domain, ip));
+                    }
                 }
             }
+        } else {
+            unresolved_domains.push(domain);
         }
     }
 
