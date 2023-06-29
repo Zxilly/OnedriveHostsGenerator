@@ -17,8 +17,8 @@ static RESOLVER: Lazy<TokioAsyncResolver> = Lazy::new(|| {
     let mut options = ResolverOpts::default();
     options.ip_strategy = LookupIpStrategy::Ipv4AndIpv6;
     options.num_concurrent_reqs = 2;
-    let mut config = NameServerConfigGroup::quad9_https();
-    config.merge(NameServerConfigGroup::cloudflare_https());
+    let mut config = NameServerConfigGroup::quad9_tls();
+    config.merge(NameServerConfigGroup::cloudflare_tls());
 
     AsyncResolver::tokio(ResolverConfig::from_parts(None, vec![], config), options).unwrap()
 });
