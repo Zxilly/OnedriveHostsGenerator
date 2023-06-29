@@ -1,5 +1,6 @@
 mod utils;
 
+use std::collections::HashSet;
 use chrono::{Local, Utc};
 use chrono_tz::Asia::Shanghai;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
@@ -22,7 +23,7 @@ static RESOLVER: Lazy<TokioAsyncResolver> = Lazy::new(|| {
     AsyncResolver::tokio(ResolverConfig::from_parts(None, vec![], config), options).unwrap()
 });
 
-pub async fn render(ipv4: bool, ipv6: bool) -> String {
+pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> String {
     let mut header = String::new();
     header.push_str_line("####### Onenote Hosts Start #######");
     header.push_str_line(
@@ -101,10 +102,17 @@ pub async fn render(ipv4: bool, ipv6: bool) -> String {
     if ipv4 {
         content.push_str("\n# IPv4 addresses:\n");
 
+        let mut printed_domain = HashSet::new();
+
         // find max length of v4 ip
         let (max_v4_ip_len, max_v4_domain_len) = find_max_length(&v4_ips);
 
         for (domain, ip) in v4_ips.into_iter() {
+            if single && (printed_domain.contains(domain)) {
+                continue;
+            }
+            printed_domain.insert(domain);
+
             content.push_str_line(&format!(
                 "{:w1$} {:>w2$}",
                 ip,
@@ -123,10 +131,17 @@ pub async fn render(ipv4: bool, ipv6: bool) -> String {
             content.push_str_line("# No IPv6 addresses resolved");
         }
 
+        let mut printed_domain = HashSet::new();
+
         // find max length of v6 ip
         let (max_v6_ip_len, max_v6_domain_len) = find_max_length(&v6_ips);
 
         for (domain, ip) in v6_ips.into_iter() {
+            if single && (printed_domain.contains(domain)) {
+                continue;
+            }
+            printed_domain.insert(domain);
+
             content.push_str_line(&format!(
                 "{:w1$} {:>w2$}",
                 ip,

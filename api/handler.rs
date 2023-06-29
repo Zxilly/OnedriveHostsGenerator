@@ -14,11 +14,12 @@ pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
 
     let ipv4 = hash_query.get("ipv4").is_some();
     let ipv6 = hash_query.get("ipv6").is_some();
+    let single = hash_query.get("single").is_some();
 
     let ret = if !ipv4 && !ipv6 {
-        render(true, true)
+        render(true, true, single)
     } else {
-        render(ipv4, ipv6)
+        render(ipv4, ipv6, single)
     }.await;
 
     Ok(Response::builder()

@@ -10,6 +10,7 @@ A Page include Onenote for Windows 10's hosts
 缓存每 6000 秒更新一次。
 
 你可以附加 `ipv4` 或者 `ipv6` 作为查询参数来获取不同的结果。默认为全部输出。
+附加 `single` 作为查询参数以使得每个域名只包含一个解析的 IP 地址。
 
 ## 开发
 
