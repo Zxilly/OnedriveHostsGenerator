@@ -9,18 +9,23 @@ async fn main() -> Result<(), Error> {
 }
 
 pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
-    let query = Url::parse(&req.uri().to_string()).unwrap();
-    let hash_query: HashMap<String, String> = query.query_pairs().into_owned().collect();
+    let url = Url::parse(&req.uri().to_string()).unwrap();
+    let hash_query: HashMap<String, String> = url.query_pairs().into_owned().collect();
 
     let ipv4 = hash_query.get("ipv4").is_some();
     let ipv6 = hash_query.get("ipv6").is_some();
     let single = hash_query.get("single").is_some();
 
-    let ret = if !ipv4 && !ipv6 {
+    let mut ret = if !ipv4 && !ipv6 {
         render(true, true, single)
     } else {
         render(ipv4, ipv6, single)
     }.await;
+
+    if url.path_segments().is_some_and(|mut segs| segs.next() == Some("dns.cache")) {
+        const WARN: &str = "# dns.cache is a deprecated endpoint from old php version, please use / instead.\n";
+        ret = format!("{}{}", WARN, ret);
+    }
 
     Ok(Response::builder()
         .status(StatusCode::OK)
