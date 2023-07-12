@@ -1,11 +1,11 @@
 mod utils;
 
-use std::collections::HashSet;
-use std::time::Instant;
 use chrono::{Local, Utc};
 use chrono_tz::Asia::Shanghai;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use once_cell::sync::Lazy;
+use std::collections::HashSet;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use std::time::Instant;
 use tokio::task::JoinSet;
 use trust_dns_resolver::config::*;
 use trust_dns_resolver::{AsyncResolver, TokioAsyncResolver};
@@ -23,6 +23,22 @@ static RESOLVER: Lazy<TokioAsyncResolver> = Lazy::new(|| {
 
     AsyncResolver::tokio(ResolverConfig::from_parts(None, vec![], config), options).unwrap()
 });
+
+fn trim_mean(numbers: &mut Vec<u64>, trimming_percentage: f64) -> u64 {
+    numbers.sort();
+
+    let trim_count =
+        ((numbers.len() as f64) * (trimming_percentage / 100.0) / 2.0).round() as usize;
+
+    numbers.drain(0..trim_count);
+    numbers.drain((numbers.len() - trim_count)..);
+
+    let sum: u64 = numbers.iter().sum();
+
+    let mean = sum / numbers.len() as u64;
+
+    mean
+}
 
 pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> (String, u64) {
     let mut header = String::new();
@@ -49,23 +65,26 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> (String, u64) {
     for domain in DOMAIN_LIST.into_iter() {
         tasks.spawn(async move {
             let ret = RESOLVER.lookup_ip(domain).await;
-            (domain, match ret {
-                Ok(ips) => Ok(ips),
-                Err(e) => Err(e),
-            })
+            (
+                domain,
+                match ret {
+                    Ok(ips) => Ok(ips),
+                    Err(e) => Err(e),
+                },
+            )
         });
     }
-    let mut ret_ttl = u64::MAX;
+    let mut ttls = vec![];
 
     while let Some(ret) = tasks.join_next().await {
         if let Ok((domain, ret)) = ret {
             match ret {
                 Ok(ips) => {
                     let expire_time = ips.valid_until();
-                    let ttl = expire_time.saturating_duration_since(Instant::now()).as_secs();
-                    if ttl < ret_ttl {
-                        ret_ttl = ttl;
-                    }
+                    let ttl = expire_time
+                        .saturating_duration_since(Instant::now())
+                        .as_secs();
+                    ttls.push(ttl);
 
                     for ip in ips.iter() {
                         match ip {
@@ -168,5 +187,5 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> (String, u64) {
 
     header.push_str_line(&content);
 
-    (header, ret_ttl)
+    (header, trim_mean(&mut ttls, 20.0))
 }
