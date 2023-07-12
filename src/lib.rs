@@ -1,6 +1,7 @@
 mod utils;
 
 use std::collections::HashSet;
+use std::time::Instant;
 use chrono::{Local, Utc};
 use chrono_tz::Asia::Shanghai;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
@@ -17,13 +18,13 @@ static RESOLVER: Lazy<TokioAsyncResolver> = Lazy::new(|| {
     let mut options = ResolverOpts::default();
     options.ip_strategy = LookupIpStrategy::Ipv4AndIpv6;
     options.num_concurrent_reqs = 2;
-    let mut config = NameServerConfigGroup::quad9_tls();
-    config.merge(NameServerConfigGroup::cloudflare_tls());
+    let mut config = NameServerConfigGroup::quad9_https();
+    config.merge(NameServerConfigGroup::cloudflare_https());
 
     AsyncResolver::tokio(ResolverConfig::from_parts(None, vec![], config), options).unwrap()
 });
 
-pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> String {
+pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> (String, u64) {
     let mut header = String::new();
     header.push_str_line("####### Onenote Hosts Start #######");
     header.push_str_line(
@@ -54,11 +55,18 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> String {
             })
         });
     }
+    let mut ret_ttl = u64::MAX;
 
     while let Some(ret) = tasks.join_next().await {
         if let Ok((domain, ret)) = ret {
             match ret {
                 Ok(ips) => {
+                    let expire_time = ips.valid_until();
+                    let ttl = expire_time.saturating_duration_since(Instant::now()).as_secs();
+                    if ttl < ret_ttl {
+                        ret_ttl = ttl;
+                    }
+
                     for ip in ips.iter() {
                         match ip {
                             IpAddr::V4(ip) => v4_ips.push((domain, ip)),
@@ -160,5 +168,5 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> String {
 
     header.push_str_line(&content);
 
-    header
+    (header, ret_ttl)
 }

@@ -16,7 +16,7 @@ pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
     let ipv6 = hash_query.get("ipv6").is_some();
     let single = hash_query.get("single").is_some();
 
-    let mut ret = if !ipv4 && !ipv6 {
+    let (mut ret, ttl) = if !ipv4 && !ipv6 {
         render(true, true, single)
     } else {
         render(ipv4, ipv6, single)
@@ -30,6 +30,6 @@ pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
     Ok(Response::builder()
         .status(StatusCode::OK)
         .header("Content-Type", "text/plain")
-        .header("Cache-Control", "s-maxage=6000, stale-while-revalidate=10")
+        .header("Cache-Control", format!("max-age={}, s-maxage={}, stale-while-revalidate=10, public",ttl, ttl))
         .body(Body::Text(ret))?)
 }
