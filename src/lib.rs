@@ -4,6 +4,7 @@ use chrono::{Local, Utc};
 use chrono_tz::Asia::Shanghai;
 use once_cell::sync::Lazy;
 use std::collections::HashSet;
+use std::fmt;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::time::Instant;
 use tokio::task::JoinSet;
@@ -110,7 +111,7 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> (String, u64) {
         }
     }
 
-    fn find_max_length<T: std::fmt::Display>(ips: &[(&str, T)]) -> (usize, usize) {
+    fn find_max_length<T: fmt::Display>(ips: &Vec<(&str, T)>) -> (usize, usize) {
         let mut max_ip_len = 0;
         let mut max_domain_len = 0;
         ips.iter().for_each(|(domain, ip)| {
@@ -126,15 +127,16 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> (String, u64) {
         (max_ip_len, max_domain_len)
     }
 
-    if ipv4 {
-        content.push_str("\n# IPv4 addresses:\n");
-
+    fn print_ips<T: fmt::Display>(
+        ips: &Vec<(&str, T)>,
+        content: &mut String,
+        single: bool,
+    ) {
         let mut printed_domain = HashSet::new();
 
-        // find max length of v4 ip
-        let (max_v4_ip_len, max_v4_domain_len) = find_max_length(&v4_ips);
+        let (max_ip_len, max_domain_len) = find_max_length(&ips);
 
-        for (domain, ip) in v4_ips.into_iter() {
+        for (domain, ip) in ips.into_iter() {
             if single && (printed_domain.contains(domain)) {
                 continue;
             }
@@ -144,10 +146,20 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> (String, u64) {
                 "{:w1$} {:>w2$}",
                 ip,
                 domain,
-                w1 = max_v4_ip_len,
-                w2 = max_v4_domain_len
+                w1 = max_ip_len,
+                w2 = max_domain_len
             ));
         }
+    }
+
+    if ipv4 {
+        content.push_str("\n# IPv4 addresses:\n");
+
+        print_ips(
+            &v4_ips,
+            &mut content,
+            single,
+        );
     }
 
     if ipv6 {
@@ -158,25 +170,11 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> (String, u64) {
             content.push_str_line("# No IPv6 addresses resolved");
         }
 
-        let mut printed_domain = HashSet::new();
-
-        // find max length of v6 ip
-        let (max_v6_ip_len, max_v6_domain_len) = find_max_length(&v6_ips);
-
-        for (domain, ip) in v6_ips.into_iter() {
-            if single && (printed_domain.contains(domain)) {
-                continue;
-            }
-            printed_domain.insert(domain);
-
-            content.push_str_line(&format!(
-                "{:w1$} {:>w2$}",
-                ip,
-                domain,
-                w1 = max_v6_ip_len,
-                w2 = max_v6_domain_len
-            ));
-        }
+        print_ips(
+            &v6_ips,
+            &mut content,
+            single,
+        );
     }
 
     content.push_str_line("####### Onenote Hosts End #######");
