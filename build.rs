@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs::File;
 use std::io::Write;
@@ -6,20 +6,43 @@ use std::path::Path;
 
 fn sort_domain(domain_list: Vec<&str>) -> Vec<String> {
     // Sort domain list by domain root name, then by domain name
-    let domain_list: HashSet<&str> = domain_list.into_iter().collect();
-    let mut domain_list: Vec<String> = domain_list.into_iter().map(String::from).collect();
+    let dedup_domain_list: Vec<String> = domain_list
+        .into_iter()
+        .map(|s| s.to_string())
+        .collect::<HashSet<String>>()
+        .into_iter()
+        .collect();
 
-    domain_list.sort_by(|a, b| {
-        let a_parts: Vec<&str> = a.split('.').rev().collect();
-        let a = a_parts.join(".");
+    let mut domains_by_primary: HashMap<String, Vec<Vec<String>>> = HashMap::new();
+    for domain in dedup_domain_list.into_iter() {
+        let domain_parts: Vec<&str> = domain.split('.').collect();
+        let primary = domain_parts.rchunks(2).next().unwrap().join(".");
+        domains_by_primary
+            .entry(primary)
+            .or_insert_with(Vec::new)
+            .push(domain_parts[0..domain_parts.len() - 2]
+                .iter().copied()
+                .map(|s| s.to_string())
+                .rev()
+                .collect()
+            );
+    }
 
-        let b_parts: Vec<&str> = b.split('.').rev().collect();
-        let b = b_parts.join(".");
+    let mut primary_list: Vec<String> = domains_by_primary.keys().cloned().collect();
+    primary_list.sort();
 
-        a.cmp(&b)
-    });
+    let mut ret = Vec::new();
 
-    domain_list
+    for domain in primary_list {
+        domains_by_primary.get_mut(&domain).unwrap().sort();
+        for sub_parts in domains_by_primary.get(&domain).unwrap().iter() {
+            let mut parts = sub_parts.clone();
+            parts.reverse();
+            parts.push(domain.clone());
+            ret.push(parts.join("."));
+        }
+    }
+    ret
 }
 
 fn main() {
