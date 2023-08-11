@@ -47,6 +47,7 @@ fn sort_domain(domain_list: Vec<&str>) -> Vec<String> {
 
 fn main() {
     println!("cargo:rerun-if-changed=domains.txt");
+    println!("cargo:rerun-if-changed=build.rs");
 
     let out_dir = env::var("OUT_DIR").unwrap();
     let dest_path = Path::new(&out_dir).join("domains.rs");
