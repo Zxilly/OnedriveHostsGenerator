@@ -3,7 +3,7 @@ mod utils;
 use chrono::{Local, Utc};
 use chrono_tz::Asia::Shanghai;
 use once_cell::sync::Lazy;
-use std::collections::HashSet;
+use std::collections::HashMap;
 use std::fmt;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::time::Instant;
@@ -36,9 +36,7 @@ fn trim_mean(numbers: &mut Vec<u64>, trimming_percentage: f64) -> u64 {
 
     let sum: u64 = numbers.iter().sum();
 
-    let mean = sum / numbers.len() as u64;
-
-    mean
+    sum / numbers.len() as u64
 }
 
 pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> (String, u64) {
@@ -57,13 +55,17 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> (String, u64) {
 
     let mut content = String::new();
 
-    let mut v4_ips: Vec<(&str, Ipv4Addr)> = vec![];
-    let mut v6_ips: Vec<(&str, Ipv6Addr)> = vec![];
-    let mut unresolved_domains: Vec<&str> = vec![];
+    let mut v4_ips: HashMap<&str, Vec<Ipv4Addr>> = HashMap::new();
+    let mut v6_ips: HashMap<&str, Vec<Ipv6Addr>> = HashMap::new();
+
+    let mut max_v4_domain_len = 0;
+    let mut max_v6_domain_len = 0;
+    let mut max_v4_ip_len = 0;
+    let mut max_v6_ip_len = 0;
 
     let mut tasks = JoinSet::new();
 
-    for domain in DOMAIN_LIST.into_iter() {
+    for domain in DOMAIN_LIST {
         tasks.spawn(async move {
             let ret = RESOLVER.lookup_ip(domain).await;
             (
@@ -89,14 +91,21 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> (String, u64) {
 
                     for ip in ips.iter() {
                         match ip {
-                            IpAddr::V4(ip) => v4_ips.push((domain, ip)),
-                            IpAddr::V6(ip) => v6_ips.push((domain, ip)),
+                            IpAddr::V4(ip) => {
+                                v4_ips.entry(domain).or_insert_with(Vec::new).push(ip);
+                                max_v4_domain_len = max_v4_domain_len.max(domain.len());
+                                max_v4_ip_len = max_v4_ip_len.max(ip.to_string().len());
+                            }
+                            IpAddr::V6(ip) => {
+                                v6_ips.entry(domain).or_insert_with(Vec::new).push(ip);
+                                max_v6_domain_len = max_v6_domain_len.max(domain.len());
+                                max_v6_ip_len = max_v6_ip_len.max(ip.to_string().len());
+                            }
                         }
                     }
                 }
                 Err(e) => {
                     eprintln!("Resolve {} failed: {}", domain, e);
-                    unresolved_domains.push(domain);
                 }
             }
         } else {
@@ -104,51 +113,45 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> (String, u64) {
         }
     }
 
-    if !unresolved_domains.is_empty() {
-        content.push_str_line("\n# Unresolved domains");
-        for domain in unresolved_domains.into_iter() {
-            content.push_str_line(&format!("# {} not resolved", domain));
-        }
-    }
-
-    fn find_max_length<T: fmt::Display>(ips: &Vec<(&str, T)>) -> (usize, usize) {
-        let mut max_ip_len = 0;
-        let mut max_domain_len = 0;
-        ips.iter().for_each(|(domain, ip)| {
-            let len = ip.to_string().len();
-            if len > max_ip_len {
-                max_ip_len = len;
-            }
-            let len = domain.len();
-            if len > max_domain_len {
-                max_domain_len = len;
-            }
-        });
-        (max_ip_len, max_domain_len)
-    }
-
     fn print_ips<T: fmt::Display>(
-        ips: &Vec<(&str, T)>,
+        ips: &HashMap<&str, Vec<T>>,
         content: &mut String,
+        domain_len: usize,
+        ip_len: usize,
         single: bool,
     ) {
-        let mut printed_domain = HashSet::new();
-
-        let (max_ip_len, max_domain_len) = find_max_length(&ips);
-
-        for (domain, ip) in ips.into_iter() {
-            if single && (printed_domain.contains(domain)) {
-                continue;
+        for domain in DOMAIN_LIST {
+            let domain_ips = ips.get(domain);
+            match domain_ips {
+                Some(domain_ips) => {
+                    if domain_ips.is_empty() {
+                        content.push_str_line(&format!("# {} not resolved", domain));
+                        continue;
+                    }
+                    if single {
+                        content.push_str_line(&format!(
+                            "{:w1$} {:>w2$}",
+                            domain_ips[0],
+                            domain,
+                            w1 = ip_len,
+                            w2 = domain_len
+                        ));
+                        continue;
+                    }
+                    for ip in domain_ips {
+                        content.push_str_line(&format!(
+                            "{:w1$} {:>w2$}",
+                            ip,
+                            domain,
+                            w1 = ip_len,
+                            w2 = domain_len
+                        ));
+                    }
+                }
+                None => {
+                    content.push_str_line(&format!("# {} not resolved", domain));
+                }
             }
-            printed_domain.insert(domain);
-
-            content.push_str_line(&format!(
-                "{:w1$} {:>w2$}",
-                ip,
-                domain,
-                w1 = max_ip_len,
-                w2 = max_domain_len
-            ));
         }
     }
 
@@ -158,6 +161,8 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> (String, u64) {
         print_ips(
             &v4_ips,
             &mut content,
+            max_v4_domain_len,
+            max_v4_ip_len,
             single,
         );
     }
@@ -173,6 +178,8 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> (String, u64) {
         print_ips(
             &v6_ips,
             &mut content,
+            max_v6_domain_len,
+            max_v6_ip_len,
             single,
         );
     }
