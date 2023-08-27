@@ -3,6 +3,13 @@ use std::collections::HashMap;
 use url::Url;
 use vercel_runtime::{run, Body, Error, Request, Response, StatusCode};
 
+#[cfg(not(target_env = "msvc"))]
+use tikv_jemallocator::Jemalloc;
+
+#[cfg(not(target_env = "msvc"))]
+#[global_allocator]
+static GLOBAL: Jemalloc = Jemalloc;
+
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     run(handler).await
