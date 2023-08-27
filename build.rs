@@ -69,6 +69,6 @@ fn main() {
     }
     let buf = format!("{}];", buf);
 
-    let mut f = File::create(dest_path.clone()).unwrap();
+    let mut f = File::create(dest_path).unwrap();
     f.write_all(buf.as_bytes()).unwrap();
 }
