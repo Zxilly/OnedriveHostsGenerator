@@ -3,6 +3,10 @@ name: Test
 on:
   push:
 
+env:
+  SCCACHE_GHA_ENABLED: "true"
+  RUSTC_WRAPPER: "sccache"
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -19,7 +23,10 @@ jobs:
         run: |
           cargo --version --verbose
           rustc --version
-          cargo clippy --version          
+          cargo clippy --version
+
+      - name: Run sccache-cache
+        uses: mozilla-actions/sccache-action@v0.0.3
 
       - name: Lint
         run: |
