@@ -162,7 +162,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_render_both_ipv4_and_ipv6() {
-        let (result, _) =render(true, true, true).await;
+        let (result, _) = render(true, true, true).await;
         // Assert on the expected result or certain properties of it
         assert!(result.contains("####### Onenote Hosts Start #######"));
         assert!(result.contains("# IPv4 addresses:"));

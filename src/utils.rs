@@ -1,6 +1,6 @@
+use crate::DOMAIN_LIST;
 use std::collections::HashMap;
 use std::fmt;
-use crate::DOMAIN_LIST;
 
 pub trait StringLine {
     fn push_str_line(&mut self, string: &str);

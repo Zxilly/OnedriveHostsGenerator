@@ -20,11 +20,13 @@ fn sort_domain(domain_list: Vec<&str>) -> Vec<String> {
         domains_by_primary
             .entry(primary)
             .or_insert_with(Vec::new)
-            .push(domain_parts[0..domain_parts.len() - 2]
-                .iter().copied()
-                .map(|s| s.to_string())
-                .rev()
-                .collect()
+            .push(
+                domain_parts[0..domain_parts.len() - 2]
+                    .iter()
+                    .copied()
+                    .map(|s| s.to_string())
+                    .rev()
+                    .collect(),
             );
     }
 
