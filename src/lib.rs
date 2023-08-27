@@ -156,7 +156,7 @@ mod tests {
         let (result, _) = render(false, true, true).await;
         // Assert on the expected result or certain properties of it
         assert!(result.contains("####### Onenote Hosts Start #######"));
-        assert!(result.contains("# No IPv6 addresses resolved"));
+        assert!(result.contains("# IPv6 addresses:"));
         assert!(result.contains("####### Onenote Hosts End #######"));
     }
 

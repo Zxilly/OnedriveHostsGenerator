@@ -14,6 +14,10 @@ impl StringLine for String {
 }
 
 pub fn trim_mean(numbers: &mut Vec<u64>, trimming_percentage: f64) -> u64 {
+    if numbers.is_empty() {
+        return 0;
+    }
+
     numbers.sort();
 
     let trim_count =
