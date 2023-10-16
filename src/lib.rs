@@ -77,12 +77,12 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> (String, u64) {
                     for ip in ips.iter() {
                         match ip {
                             IpAddr::V4(ip) => {
-                                v4_ips.entry(domain).or_insert_with(Vec::new).push(ip);
+                                v4_ips.entry(domain).or_default().push(ip);
                                 max_v4_domain_len = max_v4_domain_len.max(domain.len());
                                 max_v4_ip_len = max_v4_ip_len.max(ip.to_string().len());
                             }
                             IpAddr::V6(ip) => {
-                                v6_ips.entry(domain).or_insert_with(Vec::new).push(ip);
+                                v6_ips.entry(domain).or_default().push(ip);
                                 max_v6_domain_len = max_v6_domain_len.max(domain.len());
                                 max_v6_ip_len = max_v6_ip_len.max(ip.to_string().len());
                             }
