@@ -19,7 +19,7 @@ fn sort_domain(domain_list: Vec<&str>) -> Vec<String> {
         let primary = domain_parts.rchunks(2).next().unwrap().join(".");
         domains_by_primary
             .entry(primary)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(
                 domain_parts[0..domain_parts.len() - 2]
                     .iter()

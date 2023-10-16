@@ -7,8 +7,8 @@ use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::time::Instant;
 use tokio::task::JoinSet;
-use trust_dns_resolver::config::*;
-use trust_dns_resolver::{AsyncResolver, TokioAsyncResolver};
+use hickory_resolver::config::*;
+use hickory_resolver::{AsyncResolver, TokioAsyncResolver};
 
 use crate::utils::{print_ips, StringLine};
 
