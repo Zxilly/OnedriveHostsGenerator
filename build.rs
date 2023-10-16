@@ -17,17 +17,14 @@ fn sort_domain(domain_list: Vec<&str>) -> Vec<String> {
     for domain in dedup_domain_list.into_iter() {
         let domain_parts: Vec<&str> = domain.split('.').collect();
         let primary = domain_parts.rchunks(2).next().unwrap().join(".");
-        domains_by_primary
-            .entry(primary)
-            .or_default()
-            .push(
-                domain_parts[0..domain_parts.len() - 2]
-                    .iter()
-                    .copied()
-                    .map(|s| s.to_string())
-                    .rev()
-                    .collect(),
-            );
+        domains_by_primary.entry(primary).or_default().push(
+            domain_parts[0..domain_parts.len() - 2]
+                .iter()
+                .copied()
+                .map(|s| s.to_string())
+                .rev()
+                .collect(),
+        );
     }
 
     let mut primary_list: Vec<String> = domains_by_primary.keys().cloned().collect();

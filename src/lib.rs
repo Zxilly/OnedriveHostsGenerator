@@ -2,13 +2,13 @@ mod utils;
 
 use chrono::{Local, Utc};
 use chrono_tz::Asia::Shanghai;
+use hickory_resolver::config::*;
+use hickory_resolver::{AsyncResolver, TokioAsyncResolver};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use std::time::Instant;
 use tokio::task::JoinSet;
-use hickory_resolver::config::*;
-use hickory_resolver::{AsyncResolver, TokioAsyncResolver};
 
 use crate::utils::{print_ips, StringLine};
 
