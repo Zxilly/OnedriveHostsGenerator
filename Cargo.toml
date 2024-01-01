@@ -11,7 +11,7 @@ tokio = { version = "1", features = ["macros"] }
 url = "2.5.0"
 vercel_runtime = "1.1.0"
 hickory-resolver = { version = "0.24.0", features = ["dns-over-https-rustls", "webpki-roots"] }
-chrono-tz = "0.8.4"
+chrono-tz = "0.8.5"
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = "0.5"
