@@ -38,3 +38,11 @@ ams03pap002files.storage.live.com
 browser.pipe.aria.microsoft.com
 onedrive.live.com
 1drv.ms
+public-dm2305.files.1drv.com
+public.db.files.1drv.com
+public.ph.files.1drv.com
+public.am.files.1drv.com
+public.dm.files.1drv.com
+public.bn.files.1drv.com
+public.sn.files.1drv.com
+public.ch.files.1drv.com
