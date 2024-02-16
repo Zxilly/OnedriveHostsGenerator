@@ -1,3 +1,5 @@
+use proc_macro2::TokenStream;
+use quote::quote;
 use std::collections::{HashMap, HashSet};
 use std::env;
 use std::fs::File;
@@ -59,13 +61,22 @@ fn main() {
         .collect();
     let domain_list = sort_domain(domain_list);
 
-    let mut buf = format!("static DOMAIN_LIST: [&str; {}] = [\n", domain_list.len());
-    for domain in domain_list.into_iter() {
-        let line = format!("    \"{}\",\n", domain);
-        buf.push_str(&line);
-    }
-    let buf = format!("{}];", buf);
+    let domain_list_len = domain_list.len();
+    let domain_tokens: TokenStream = domain_list
+        .into_iter()
+        .map(|domain| {
+            quote! {
+                #domain,
+            }
+        })
+        .collect();
+
+    let tokens = quote! {
+        static DOMAIN_LIST: [&str; #domain_list_len] = [
+            #domain_tokens
+        ];
+    };
 
     let mut f = File::create(dest_path).unwrap();
-    f.write_all(buf.as_bytes()).unwrap();
+    f.write_all(tokens.to_string().as_ref()).unwrap();
 }
