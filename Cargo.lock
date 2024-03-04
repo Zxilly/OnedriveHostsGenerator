@@ -1506,9 +1506,9 @@ dependencies = [
 
 [[package]]
 name = "vercel_runtime"
-version = "1.1.0"
+version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9cf51c114b81ef5b4831b2e3b8d7c98b6e15ffe02eec03bae972b8aa2f2d01b"
+checksum = "b08a53b5050450ac9a287b2e308b35478af816730cee0c5d19b73128475268a5"
 dependencies = [
  "async-trait",
  "base64",
@@ -1529,9 +1529,9 @@ dependencies = [
 
 [[package]]
 name = "vercel_runtime_macro"
-version = "1.1.0"
+version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5825fd955017e6dd1984a561344bbf340cdbfb1a436b9b639c543a1dc63f98b"
+checksum = "0daaf5bc7ed28af6645e82b2edfb8ab4ecc40d7cd65901350e808c259829956c"
 dependencies = [
  "glob",
  "quote",
@@ -1541,9 +1541,9 @@ dependencies = [
 
 [[package]]
 name = "vercel_runtime_router"
-version = "1.1.0"
+version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1f5769df66e81052dc294e2dbb5a45214ad965ca2db3be09c2707db1c581a97"
+checksum = "3afac9b3d8d97c41c948769da85c241375b3eb7d806f91956d6e8866fbc7cb2b"
 dependencies = [
  "glob",
  "lazy_static",
