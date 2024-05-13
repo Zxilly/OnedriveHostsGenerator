@@ -19,9 +19,9 @@ pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
     let url = Url::parse(&req.uri().to_string()).unwrap();
     let hash_query: HashMap<String, String> = url.query_pairs().into_owned().collect();
 
-    let ipv4 = hash_query.get("ipv4").is_some();
-    let ipv6 = hash_query.get("ipv6").is_some();
-    let single = hash_query.get("single").is_some();
+    let ipv4 = hash_query.contains_key("ipv4");
+    let ipv6 = hash_query.contains_key("ipv6");
+    let single = hash_query.contains_key("single");
 
     let (mut ret, ttl) = if !ipv4 && !ipv6 {
         render(true, true, single)
