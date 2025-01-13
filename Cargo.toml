@@ -15,7 +15,7 @@ hickory-resolver = { version = "0.24.2", features = ["dns-over-https-rustls", "w
 
 [build-dependencies]
 quote = "1.0.38"
-proc-macro2 = "1.0.92"
+proc-macro2 = "1.0.93"
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = "0.6"
