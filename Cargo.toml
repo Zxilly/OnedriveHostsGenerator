@@ -17,9 +17,6 @@ hickory-resolver = { version = "0.24.4", features = ["dns-over-https-rustls", "w
 quote = "1.0.38"
 proc-macro2 = "1.0.93"
 
-[target.'cfg(not(target_env = "msvc"))'.dependencies]
-tikv-jemallocator = "0.6"
-
 [[bin]]
 name = "handler"
 path = "api/handler.rs"

@@ -3,13 +3,6 @@ use std::collections::HashMap;
 use url::Url;
 use vercel_runtime::{run, Body, Error, Request, Response, StatusCode};
 
-#[cfg(not(target_env = "msvc"))]
-use tikv_jemallocator::Jemalloc;
-
-#[cfg(not(target_env = "msvc"))]
-#[global_allocator]
-static GLOBAL: Jemalloc = Jemalloc;
-
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     run(handler).await
@@ -23,7 +16,7 @@ pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
     let ipv6 = hash_query.contains_key("ipv6");
     let single = hash_query.contains_key("single");
 
-    let (mut ret, ttl) = if !ipv4 && !ipv6 {
+    let mut ret = if !ipv4 && !ipv6 {
         render(true, true, single)
     } else {
         render(ipv4, ipv6, single)
@@ -44,10 +37,9 @@ pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
         .header("Content-Type", "text/plain")
         .header(
             "Cache-Control",
-            format!(
-                "max-age={}, s-maxage={}, stale-while-revalidate=10, public",
-                ttl, ttl
-            ),
+            "max-age=36000, s-maxage=36000, stale-while-revalidate=100, public",
         )
+        .header("CDN-Cache-Control", "max-age=36000, public")
+        .header("Vercel-CDN-Cache-Control", "max-age=36000, public")
         .body(Body::Text(ret))?)
 }

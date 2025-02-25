@@ -7,7 +7,6 @@ use hickory_resolver::{AsyncResolver, TokioAsyncResolver};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-use std::time::Instant;
 use tokio::task::JoinSet;
 
 use crate::utils::{print_ips, StringLine};
@@ -24,7 +23,7 @@ static RESOLVER: Lazy<TokioAsyncResolver> = Lazy::new(|| {
     AsyncResolver::tokio(ResolverConfig::from_parts(None, vec![], config), options)
 });
 
-pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> (String, u64) {
+pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> String {
     let mut header = String::new();
     header.push_str_line("####### Onenote Hosts Start #######");
     header.push_str_line(
@@ -62,18 +61,11 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> (String, u64) {
             )
         });
     }
-    let mut ttls = vec![];
 
     while let Some(ret) = tasks.join_next().await {
         if let Ok((domain, ret)) = ret {
             match ret {
                 Ok(ips) => {
-                    let expire_time = ips.valid_until();
-                    let ttl = expire_time
-                        .saturating_duration_since(Instant::now())
-                        .as_secs();
-                    ttls.push(ttl);
-
                     for ip in ips.iter() {
                         match ip {
                             IpAddr::V4(ip) => {
@@ -135,7 +127,7 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> (String, u64) {
 
     header.push_str_line(&content);
 
-    (header, utils::trim_mean(&mut ttls, 20.0))
+    header
 }
 
 #[cfg(test)]
@@ -144,7 +136,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_render_ipv4() {
-        let (result, _) = render(true, false, true).await;
+        let result = render(true, false, true).await;
         // Assert on the expected result or certain properties of it
         assert!(result.contains("####### Onenote Hosts Start #######"));
         assert!(result.contains("# IPv4 addresses:"));
@@ -153,7 +145,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_render_ipv6() {
-        let (result, _) = render(false, true, true).await;
+        let result = render(false, true, true).await;
         // Assert on the expected result or certain properties of it
         assert!(result.contains("####### Onenote Hosts Start #######"));
         assert!(result.contains("# IPv6 addresses:"));
@@ -162,7 +154,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_render_both_ipv4_and_ipv6() {
-        let (result, _) = render(true, true, true).await;
+        let result = render(true, true, true).await;
         // Assert on the expected result or certain properties of it
         assert!(result.contains("####### Onenote Hosts Start #######"));
         assert!(result.contains("# IPv4 addresses:"));
