@@ -15,3 +15,9 @@ A Page include Onenote for Windows 10's hosts
 ## 开发
 
 你可以在 [Office 365 端点](https://docs.microsoft.com/zh-cn/office365/enterprise/office-365-endpoints) 找到所有 `Microsoft 365 应用` 所使用的域名，但因为该文档中含有大量通配符域名，实践中需要配合本地客户端抓包
+
+## Sponsor
+
+CDN acceleration and security protection for this project are sponsored by Tencent EdgeOne.
+
+<img src="https://github.com/user-attachments/assets/603e5752-74d5-43fc-84a9-1aa6a0ce0367" alt="描述" width="300"/>
