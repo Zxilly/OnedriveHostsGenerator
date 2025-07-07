@@ -82,7 +82,7 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> String {
                     }
                 }
                 Err(e) => {
-                    eprintln!("Resolve {} failed: {}", domain, e);
+                    eprintln!("Resolve {domain} failed: {e}");
                 }
             }
         } else {
@@ -123,7 +123,7 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> String {
 
     let cost_time = Local::now().signed_duration_since(now).num_milliseconds();
 
-    header.push_str_line(&format!("# Generate in: {} ms", cost_time));
+    header.push_str_line(&format!("# Generate in: {cost_time} ms"));
 
     header.push_str_line(&content);
 

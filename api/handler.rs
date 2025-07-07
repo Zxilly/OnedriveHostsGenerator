@@ -29,7 +29,7 @@ pub async fn handler(req: Request) -> Result<Response<Body>, Error> {
     {
         const WARN: &str =
             "# dns.cache is a deprecated endpoint from old php version, please use / instead.\n";
-        ret = format!("{}{}", WARN, ret);
+        ret = format!("{WARN}{ret}");
     }
 
     Ok(Response::builder()

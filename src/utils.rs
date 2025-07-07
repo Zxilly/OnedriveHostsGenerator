@@ -25,7 +25,7 @@ pub fn print_ips<T: fmt::Display>(
         match domain_ips {
             Some(domain_ips) => {
                 if domain_ips.is_empty() {
-                    content.push_str_line(&format!("# {} not resolved", domain));
+                    content.push_str_line(&format!("# {domain} not resolved"));
                     continue;
                 }
                 if single {
@@ -40,16 +40,12 @@ pub fn print_ips<T: fmt::Display>(
                 }
                 for ip in domain_ips {
                     content.push_str_line(&format!(
-                        "{:w1$} {:>w2$}",
-                        ip,
-                        domain,
-                        w1 = ip_len,
-                        w2 = domain_len
+                        "{ip:ip_len$} {domain:>domain_len$}"
                     ));
                 }
             }
             None => {
-                content.push_str_line(&format!("# {} not resolved", domain));
+                content.push_str_line(&format!("# {domain} not resolved"));
             }
         }
     }
