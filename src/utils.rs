@@ -39,9 +39,7 @@ pub fn print_ips<T: fmt::Display>(
                     continue;
                 }
                 for ip in domain_ips {
-                    content.push_str_line(&format!(
-                        "{ip:ip_len$} {domain:>domain_len$}"
-                    ));
+                    content.push_str_line(&format!("{ip:ip_len$} {domain:>domain_len$}"));
                 }
             }
             None => {
