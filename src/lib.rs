@@ -16,9 +16,15 @@ include!(concat!(env!("OUT_DIR"), "/domains.rs"));
 static RESOLVER: Lazy<TokioAsyncResolver> = Lazy::new(|| {
     let mut options = ResolverOpts::default();
     options.ip_strategy = LookupIpStrategy::Ipv4AndIpv6;
-    options.num_concurrent_reqs = 2;
-    let mut config = NameServerConfigGroup::quad9_https();
-    config.merge(NameServerConfigGroup::cloudflare_https());
+    options.num_concurrent_reqs = 6;
+    options.timeout = std::time::Duration::from_secs(5);
+    options.attempts = 3;
+    let mut config = NameServerConfigGroup::cloudflare_https();
+    config.merge(NameServerConfigGroup::quad9_https());
+    config.merge(NameServerConfigGroup::google_https());
+    config.merge(NameServerConfigGroup::cloudflare_tls());
+    config.merge(NameServerConfigGroup::quad9_tls());
+    config.merge(NameServerConfigGroup::google_tls());
 
     AsyncResolver::tokio(ResolverConfig::from_parts(None, vec![], config), options)
 });
