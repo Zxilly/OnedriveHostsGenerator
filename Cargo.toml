@@ -9,7 +9,7 @@ chrono = "0.4.42"
 chrono-tz = "0.10.4"
 once_cell = "1.21.3"
 tokio = { version = "1", features = ["macros"] }
-url = "2.5.4"
+url = "2.5.7"
 vercel_runtime = "1.1.6"
 hickory-resolver = { version = "0.24.4", features = ["dns-over-https-rustls", "webpki-roots"] }
 
