@@ -14,7 +14,7 @@ vercel_runtime = "1.1.6"
 hickory-resolver = { version = "0.24.4", features = ["dns-over-https-rustls", "webpki-roots"] }
 
 [build-dependencies]
-quote = "1.0.40"
+quote = "1.0.41"
 proc-macro2 = "1.0.95"
 
 [[bin]]
