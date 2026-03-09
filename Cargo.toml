@@ -16,7 +16,7 @@ http = "1"
 
 [build-dependencies]
 quote = "1.0.43"
-proc-macro2 = "1.0.103"
+proc-macro2 = "1.0.106"
 
 [[bin]]
 name = "handler"
