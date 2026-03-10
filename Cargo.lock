@@ -1286,9 +1286,9 @@ checksum = "b6c140620e7ffbb22c2dee59cafe6084a59b5ffc27a8859a5f0d494b5d52b6be"
 
 [[package]]
 name = "vercel_runtime"
-version = "2.1.0"
+version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69193472f4f27685f726935d7811e5d66be2941edae8dd3f129b281c28b1baaa"
+checksum = "73ae39c5605f595542c909f24ad181585a850adef13cba934f8279ac4848e106"
 dependencies = [
  "base64 0.22.1",
  "http-body",
