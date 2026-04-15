@@ -2,7 +2,7 @@ use http::StatusCode;
 use onedrive_hosts_generator::render;
 use std::collections::HashMap;
 use url::form_urlencoded;
-use vercel_runtime::{run, Error, Request, Response, ResponseBody, service_fn};
+use vercel_runtime::{run, service_fn, Error, Request, Response, ResponseBody};
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -13,18 +13,14 @@ pub async fn handler(req: Request) -> Result<Response<ResponseBody>, Error> {
     let uri = req.uri();
     let hash_query: HashMap<String, String> = uri
         .query()
-        .map(|q| {
-            form_urlencoded::parse(q.as_bytes())
-                .into_owned()
-                .collect()
-        })
+        .map(|q| form_urlencoded::parse(q.as_bytes()).into_owned().collect())
         .unwrap_or_default();
 
     let ipv4 = hash_query.contains_key("ipv4");
     let ipv6 = hash_query.contains_key("ipv6");
     let single = hash_query.contains_key("single");
 
-    let mut ret = if !ipv4 && !ipv6 {
+    let ret = if !ipv4 && !ipv6 {
         render(true, true, single)
     } else {
         render(ipv4, ipv6, single)
