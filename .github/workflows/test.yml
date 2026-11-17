@@ -40,5 +40,9 @@ jobs:
           cargo check --locked
           cargo test --locked --all
 
+      - name: Verify encrypted DNS upstreams
+        timeout-minutes: 5
+        run: cargo test --locked encrypted_upstreams_resolve_both_families -- --ignored --nocapture
+
       - name: Build
         run: cargo build --locked --release
