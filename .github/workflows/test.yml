@@ -2,6 +2,8 @@ name: Test
 
 on:
   push:
+  pull_request:
+  workflow_dispatch:
 
 env:
   SCCACHE_GHA_ENABLED: "true"
@@ -17,7 +19,7 @@ jobs:
         run: |
           rustup update
           rustup component add clippy
-          rustup install nightly          
+          rustup install nightly
 
       - name: Toolchain info
         run: |
@@ -31,12 +33,16 @@ jobs:
       - name: Lint
         run: |
           cargo fmt -- --check
-          cargo clippy -- -D warnings          
+          cargo clippy --locked --all-targets -- -D warnings
 
       - name: Test
         run: |
-          cargo check
-          cargo test --all          
+          cargo check --locked
+          cargo test --locked --all
+
+      - name: Verify encrypted DNS upstreams
+        timeout-minutes: 5
+        run: cargo test --locked encrypted_upstreams_resolve_both_families -- --ignored --nocapture
 
       - name: Build
-        run: cargo build --release
+        run: cargo build --locked --release

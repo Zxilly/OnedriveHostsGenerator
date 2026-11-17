@@ -3,7 +3,8 @@ mod utils;
 use chrono::{Local, Utc};
 use chrono_tz::Asia::Shanghai;
 use hickory_resolver::config::*;
-use hickory_resolver::{AsyncResolver, TokioAsyncResolver};
+use hickory_resolver::net::runtime::TokioRuntimeProvider;
+use hickory_resolver::{Resolver, TokioResolver};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
@@ -13,21 +14,33 @@ use crate::utils::{print_ips, StringLine};
 
 include!(concat!(env!("OUT_DIR"), "/domains.rs"));
 
-static RESOLVER: Lazy<TokioAsyncResolver> = Lazy::new(|| {
-    let mut options = ResolverOpts::default();
+fn resolver_config() -> ResolverConfig {
+    // Keep the existing encrypted upstreams; never fall back to plaintext DNS
+    // or the host system's resolver configuration.
+    let servers = CLOUDFLARE
+        .https()
+        .chain(QUAD9.https())
+        .chain(GOOGLE.https())
+        .chain(CLOUDFLARE.tls())
+        .chain(QUAD9.tls())
+        .chain(GOOGLE.tls())
+        .collect();
+    ResolverConfig::from_name_servers(servers)
+}
+
+fn new_resolver(config: ResolverConfig) -> TokioResolver {
+    let mut builder = Resolver::builder_with_config(config, TokioRuntimeProvider::default());
+    let options = builder.options_mut();
     options.ip_strategy = LookupIpStrategy::Ipv4AndIpv6;
     options.num_concurrent_reqs = 6;
     options.timeout = std::time::Duration::from_secs(5);
     options.attempts = 3;
-    let mut config = NameServerConfigGroup::cloudflare_https();
-    config.merge(NameServerConfigGroup::quad9_https());
-    config.merge(NameServerConfigGroup::google_https());
-    config.merge(NameServerConfigGroup::cloudflare_tls());
-    config.merge(NameServerConfigGroup::quad9_tls());
-    config.merge(NameServerConfigGroup::google_tls());
+    builder
+        .build()
+        .expect("valid encrypted DNS resolver configuration")
+}
 
-    AsyncResolver::tokio(ResolverConfig::from_parts(None, vec![], config), options)
-});
+static RESOLVER: Lazy<TokioResolver> = Lazy::new(|| new_resolver(resolver_config()));
 
 pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> String {
     let mut header = String::new();
@@ -43,15 +56,8 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> String {
         now.format("%Y-%m-%d %H:%M:%S")
     ));
 
-    let mut content = String::new();
-
     let mut v4_ips: HashMap<&str, Vec<Ipv4Addr>> = HashMap::new();
     let mut v6_ips: HashMap<&str, Vec<Ipv6Addr>> = HashMap::new();
-
-    let mut max_v4_domain_len = 0;
-    let mut max_v6_domain_len = 0;
-    let mut max_v4_ip_len = 0;
-    let mut max_v6_ip_len = 0;
 
     let mut tasks = JoinSet::new();
 
@@ -76,13 +82,9 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> String {
                         match ip {
                             IpAddr::V4(ip) => {
                                 v4_ips.entry(domain).or_default().push(ip);
-                                max_v4_domain_len = max_v4_domain_len.max(domain.len());
-                                max_v4_ip_len = max_v4_ip_len.max(ip.to_string().len());
                             }
                             IpAddr::V6(ip) => {
                                 v6_ips.entry(domain).or_default().push(ip);
-                                max_v6_domain_len = max_v6_domain_len.max(domain.len());
-                                max_v6_ip_len = max_v6_ip_len.max(ip.to_string().len());
                             }
                         }
                     }
@@ -96,11 +98,46 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> String {
         }
     }
 
+    let content = format_hosts(ipv4, ipv6, single, &v4_ips, &v6_ips);
+
+    let cost_time = Local::now().signed_duration_since(now).num_milliseconds();
+
+    header.push_str_line(&format!("# Generate in: {cost_time} ms"));
+
+    header.push_str_line(&content);
+
+    header
+}
+
+// Formatting is deliberately separate from network resolution, so empty,
+// failed, single-address and dual-stack results can be tested offline.
+fn format_hosts(
+    ipv4: bool,
+    ipv6: bool,
+    single: bool,
+    v4_ips: &HashMap<&str, Vec<Ipv4Addr>>,
+    v6_ips: &HashMap<&str, Vec<Ipv6Addr>>,
+) -> String {
+    let mut content = String::new();
+    let max_v4_domain_len = v4_ips.keys().map(|d| d.len()).max().unwrap_or(0);
+    let max_v6_domain_len = v6_ips.keys().map(|d| d.len()).max().unwrap_or(0);
+    let max_v4_ip_len = v4_ips
+        .values()
+        .flatten()
+        .map(|ip| ip.to_string().len())
+        .max()
+        .unwrap_or(0);
+    let max_v6_ip_len = v6_ips
+        .values()
+        .flatten()
+        .map(|ip| ip.to_string().len())
+        .max()
+        .unwrap_or(0);
     if ipv4 {
         content.push_str("\n# IPv4 addresses:\n");
 
         print_ips(
-            &v4_ips,
+            v4_ips,
             &mut content,
             max_v4_domain_len,
             max_v4_ip_len,
@@ -117,7 +154,7 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> String {
         }
 
         print_ips(
-            &v6_ips,
+            v6_ips,
             &mut content,
             max_v6_domain_len,
             max_v6_ip_len,
@@ -127,44 +164,122 @@ pub async fn render(ipv4: bool, ipv6: bool, single: bool) -> String {
 
     content.push_str_line("####### Onenote Hosts End #######");
 
-    let cost_time = Local::now().signed_duration_since(now).num_milliseconds();
-
-    header.push_str_line(&format!("# Generate in: {cost_time} ms"));
-
-    header.push_str_line(&content);
-
-    header
+    content
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    #[tokio::test]
-    async fn test_render_ipv4() {
-        let result = render(true, false, true).await;
-        // Assert on the expected result or certain properties of it
-        assert!(result.contains("####### Onenote Hosts Start #######"));
-        assert!(result.contains("# IPv4 addresses:"));
-        assert!(result.contains("####### Onenote Hosts End #######"));
+    #[test]
+    fn formats_both_families_and_single_address() {
+        let domain = DOMAIN_LIST[0];
+        let v4 = HashMap::from([(
+            domain,
+            vec![Ipv4Addr::new(192, 0, 2, 1), Ipv4Addr::new(192, 0, 2, 2)],
+        )]);
+        let v6 = HashMap::from([(domain, vec!["2001:db8::1".parse().unwrap()])]);
+        let all = format_hosts(true, true, false, &v4, &v6);
+        assert!(all.contains("192.0.2.1"));
+        assert!(all.contains("192.0.2.2"));
+        assert!(all.contains("2001:db8::1"));
+        assert!(all.contains("# IPv4 addresses:"));
+        assert!(all.contains("# IPv6 addresses:"));
+        let single = format_hosts(true, true, true, &v4, &v6);
+        assert!(single.contains("192.0.2.1"));
+        assert!(!single.contains("192.0.2.2"));
+        assert!(single.ends_with("####### Onenote Hosts End #######\n"));
+        let only_v4 = format_hosts(true, false, false, &v4, &v6);
+        assert!(!only_v4.contains("2001:db8::1"));
+        let only_v6 = format_hosts(false, true, false, &v4, &v6);
+        assert!(!only_v6.contains("192.0.2.1"));
+    }
+
+    #[test]
+    fn unresolved_domains_are_reported_offline() {
+        let output = format_hosts(true, true, false, &HashMap::new(), &HashMap::new());
+        assert!(output.contains("# No IPv6 addresses resolved"));
+        for domain in DOMAIN_LIST {
+            assert!(output.contains(&format!("# {domain} not resolved")));
+        }
+    }
+
+    #[test]
+    fn upstream_configuration_remains_encrypted() {
+        let config = resolver_config();
+        assert!(config.domain.is_none());
+        assert!(config.search.is_empty());
+        let expected_count = 2 * (CLOUDFLARE.ips.len() + QUAD9.ips.len() + GOOGLE.ips.len());
+        assert_eq!(config.name_servers.len(), expected_count);
+        for group in [CLOUDFLARE, QUAD9, GOOGLE] {
+            for expected in group.https().chain(group.tls()) {
+                assert_eq!(
+                    config
+                        .name_servers
+                        .iter()
+                        .filter(|s| s.ip == expected.ip
+                            && s.connections[0].port == expected.connections[0].port)
+                        .count(),
+                    1
+                );
+            }
+        }
+        for server in config.name_servers {
+            assert_eq!(server.connections.len(), 1);
+            let connection = &server.connections[0];
+            match &connection.protocol {
+                ProtocolConfig::Https { server_name, path } => {
+                    assert_eq!(connection.port, 443);
+                    assert_eq!(path.as_ref(), "/dns-query");
+                    assert!([CLOUDFLARE, QUAD9, GOOGLE]
+                        .iter()
+                        .any(|group| group.server_name == server_name.as_ref()
+                            && group.ips.contains(&server.ip)));
+                }
+                ProtocolConfig::Tls { server_name } => {
+                    assert_eq!(connection.port, 853);
+                    assert!([CLOUDFLARE, QUAD9, GOOGLE]
+                        .iter()
+                        .any(|group| group.server_name == server_name.as_ref()
+                            && group.ips.contains(&server.ip)));
+                }
+                _ => panic!("plaintext or unexpected DNS transport"),
+            }
+        }
     }
 
     #[tokio::test]
-    async fn test_render_ipv6() {
-        let result = render(false, true, true).await;
-        // Assert on the expected result or certain properties of it
-        assert!(result.contains("####### Onenote Hosts Start #######"));
-        assert!(result.contains("# IPv6 addresses:"));
-        assert!(result.contains("####### Onenote Hosts End #######"));
+    async fn resolver_preserves_options() {
+        let resolver = new_resolver(resolver_config());
+        assert_eq!(
+            resolver.options().ip_strategy,
+            LookupIpStrategy::Ipv4AndIpv6
+        );
+        assert_eq!(resolver.options().num_concurrent_reqs, 6);
+        assert_eq!(
+            resolver.options().timeout,
+            std::time::Duration::from_secs(5)
+        );
+        assert_eq!(resolver.options().attempts, 3);
     }
 
+    // Explicitly opt in: public DNS availability is not an offline unit test.
     #[tokio::test]
-    async fn test_render_both_ipv4_and_ipv6() {
-        let result = render(true, true, true).await;
-        // Assert on the expected result or certain properties of it
-        assert!(result.contains("####### Onenote Hosts Start #######"));
-        assert!(result.contains("# IPv4 addresses:"));
-        assert!(result.contains("# IPv6 addresses:"));
-        assert!(result.contains("####### Onenote Hosts End #######"));
+    #[ignore = "requires outbound DNS over HTTPS and TLS to public resolvers"]
+    async fn encrypted_upstreams_resolve_both_families() {
+        for group in [CLOUDFLARE, QUAD9, GOOGLE] {
+            for (protocol, config) in [
+                ("https", ResolverConfig::https(&group)),
+                ("tls", ResolverConfig::tls(&group)),
+            ] {
+                let resolver = new_resolver(config);
+                let ips = resolver
+                    .lookup_ip("one.one.one.one.")
+                    .await
+                    .unwrap_or_else(|error| panic!("{} {protocol}: {error}", group.server_name));
+                assert!(ips.iter().any(|ip| ip.is_ipv4()));
+                assert!(ips.iter().any(|ip| ip.is_ipv6()));
+            }
+        }
     }
 }
